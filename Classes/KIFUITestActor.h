@@ -226,6 +226,13 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
 - (void)waitForAnimationsToFinishWithTimeout:(NSTimeInterval)timeout;
 
 /*!
+ @abstract Tries to guess if there are any unfinished animations and waits for a certain amount of time to let them finish.
+ @param timeout The maximum duration the method waits to let the animations finish.
+ @param stabilizationTime The time we just sleep before attempting to detect animations
+ */
+- (void)waitForAnimationsToFinishWithTimeout:(NSTimeInterval)timeout stabilizationTime:(NSTimeInterval)stabilizationTime;
+
+/*!
  @abstract Taps a particular view in the view hierarchy.
  @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, a tap event is simulated in the center of the view or element.
  @param label The accessibility label of the element to tap.
@@ -379,6 +386,21 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
 - (void)clearTextFromAndThenEnterTextIntoCurrentFirstResponder:(NSString *)text;
 - (void)clearTextFromAndThenEnterText:(NSString *)text intoViewWithAccessibilityLabel:(NSString *)label;
 - (void)clearTextFromAndThenEnterText:(NSString *)text intoViewWithAccessibilityLabel:(NSString *)label traits:(UIAccessibilityTraits)traits expectedResult:(NSString *)expectedResult;
+
+/*!
+ @abstract Sets text into a particular view in the view hierarchy. No animation nor typing simulation.
+ @discussion The view or accessibility element with the given label is searched for in the view hierarchy. If the element isn't found or isn't currently tappable, then the step will attempt to wait until it is. Once the view is present and tappable, then text is set on the view. Does not result in first responder changes. Does not perform expected result validation.
+ @param text The text to set.
+ @param label The accessibility label of the element to set the text on.
+ */
+- (void)setText:(NSString *)text intoViewWithAccessibilityLabel:(NSString *)label;
+
+/*!
+ @abstract Gets text from a given label/text field/text view
+ @param view The view to get the text from
+ @returns Text from the given label/text field/text view
+ */
+- (NSString *)textFromView:(UIView *)view;
 
 - (void)expectView:(UIView *)view toContainText:(NSString *)expectedResult;
 
@@ -630,6 +652,7 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
  @abstract Scrolls a table view with the given identifier while waiting for the cell at the given indexPath to appear.
  @discussion This step will get the view with the specified accessibility identifier and then get the cell at the indexPath.
  
+ By default, scrolls to the middle of the cell. If you need to scroll to top/bottom, use the @c atPosition: variation.
  For cases where you may need to work from the end of a table view rather than the beginning, negative sections count back from the end of the table view (-1 is the last section) and negative rows count back from the end of the section (-1 is the last row for that section).
  
  @param indexPath Index path of the cell.
@@ -639,9 +662,23 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
 - (UITableViewCell *)waitForCellAtIndexPath:(NSIndexPath *)indexPath inTableViewWithAccessibilityIdentifier:(NSString *)identifier;
 
 /*!
+ @abstract Scrolls a table view with the given identifier while waiting for the cell at the given indexPath to appear.
+ @discussion This step will get the view with the specified accessibility identifier and then get the cell at the indexPath.
+ 
+ For cases where you may need to work from the end of a table view rather than the beginning, negative sections count back from the end of the table view (-1 is the last section) and negative rows count back from the end of the section (-1 is the last row for that section).
+ 
+ @param indexPath Index path of the cell.
+ @param identifier Accessibility identifier of the table view.
+ @param position Table View scroll position to scroll to. Useful for tall cells when the content needed is in a specific location.
+ @result Table view cell at index path
+ */
+- (UITableViewCell *)waitForCellAtIndexPath:(NSIndexPath *)indexPath inTableViewWithAccessibilityIdentifier:(NSString *)identifier atPosition:(UITableViewScrollPosition)position;
+
+/*!
  @abstract Scrolls a table view while waiting for the cell at the given indexPath to appear.
  @discussion This step will get the cell at the indexPath.
  
+ By default, scrolls to the middle of the cell. If you need to scroll to top/bottom, use the @c atPosition: variation.
  For cases where you may need to work from the end of a table view rather than the beginning, negative sections count back from the end of the table view (-1 is the last section) and negative rows count back from the end of the section (-1 is the last row for that section).
  
  @param indexPath Index path of the cell.
@@ -649,6 +686,19 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
  @result Table view cell at index path
  */
 - (UITableViewCell *)waitForCellAtIndexPath:(NSIndexPath *)indexPath inTableView:(UITableView *)tableView;
+
+/*!
+ @abstract Scrolls a table view while waiting for the cell at the given indexPath to appear.
+ @discussion This step will get the cell at the indexPath.
+ 
+ For cases where you may need to work from the end of a table view rather than the beginning, negative sections count back from the end of the table view (-1 is the last section) and negative rows count back from the end of the section (-1 is the last row for that section).
+ 
+ @param indexPath Index path of the cell.
+ @param tableView UITableView containing the cell.
+ @param position Table View scroll position to scroll to. Useful for tall cells when the content needed is in a specific location.
+ @result Table view cell at index path
+ */
+- (UITableViewCell *)waitForCellAtIndexPath:(NSIndexPath *)indexPath inTableView:(UITableView *)tableView atPosition:(UITableViewScrollPosition)position;
 
 /*!
  @abstract Scrolls a collection view while waiting for the cell at the given indexPath to appear.
@@ -707,6 +757,18 @@ typedef NS_ENUM(NSUInteger, KIFPullToRefreshTiming) {
 */
 - (void)swipeRowAtIndexPath:(NSIndexPath *)indexPath inTableView:(UITableView *)tableView inDirection:(KIFSwipeDirection)direction;
 
+/*!
+ @abstract Waits for the given cell to transition to the delete state. Useful when swiping left on a cell for delete action.
+ @param cell Cell to wait for delete state on.
+ */
+- (void)waitForDeleteStateForCell:(UITableViewCell*)cell;
+
+/*!
+ @abstract Waits for the given cell to transition to the delete state. Useful when swiping left on a cell for delete action.
+ @param indexPath Index path of the row to wait for the delete state on.
+ @param tableView Table view to operate on.
+ */
+- (void)waitForDeleteStateForCellAtIndexPath:(NSIndexPath*)indexPath inTableView:(UITableView*)tableView;
 
 /*!
  @abstract Backgrounds app using UIAutomation command, simulating pressing the Home button
